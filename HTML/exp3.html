@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Veg Recipe Input</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #fffbe6, #f0f7e8);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background-color: #ffffff;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #aa994a;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .prompt {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .prompt span {
+      font-size: 20px;
+      margin-right: 8px;
+      color: #888;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    input[type="text"], select {
+      padding: 10px 12px;
+      border: 1.5px solid #a0a0a0;
+      border-radius: 10px;
+      font-size: 15px;
+      background-color: #fff;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus, select:focus {
+      border-color: #b49e4a;
+      outline: none;
+    }
+
+    .note {
+      font-size: 13px;
+      color: #888;
+      margin-top: 6px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background-color: #a99034;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      margin-top: 30px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #a2892d;
+    }
+
+    .results {
+      margin-top: 25px;
+    }
+
+    .recipe {
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      background: #fafafa;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .recipe:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+    }
+
+    .recipe img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
+    .recipe a {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 8px 12px;
+      background-color: #a99034;
+      color: white;
+      font-weight: bold;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+    }
+
+    .recipe a:hover {
+      background-color: #a2892d;
+    }
+
+    .recipe p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Find a Recipe</h2>
+
+    <!-- Ingredients Section -->
+    <div class="section">
+      <div class="prompt">
+        <span>.</span>
+        <div>Enter up to 5 ingredients you have:</div>
+      </div>
+      <div class="input-group">
+        <input type="text" placeholder="Vegetable 1">
+        <input type="text" placeholder="Vegetable 2">
+        <input type="text" placeholder="Vegetable 3">
+        <input type="text" placeholder="Vegetable 4">
+        <input type="text" placeholder="Vegetable 5">
+      </div>
+      <div class="note">Tip: Try potato, tomato, spinach etc.</div>
+    </div>
+
+    <!-- Avoid Ingredients Section -->
+    <div class="section">
+      <div class="prompt">
+        <span>⊝</span>
+        <div>Ingredients to avoid?</div>
+      </div>
+      <input type="text" id="avoidInput" placeholder="e.g., onion, garlic">
+    </div>
+
+    <!-- Veg/Non-Veg Option -->
+    <div class="section">
+      <div class="prompt">
+        <span>🍴</span>
+        <div>Choose preference:</div>
+      </div>
+      <select id="dietSelect">
+        <option value="">Any</option>
+        <option value="vegetarian">Vegetarian</option>
+        <option value="vegan">Vegan</option>
+        <option value="pescetarian">Pescetarian</option>
+        <option value="none">Non-Veg</option>
+      </select>
+    </div>
+
+    <button class="btn">Suggest Recipe</button>
+
+    <div class="results" id="results"></div>
+  </div>
+<script>
+  const button = document.querySelector(".btn");
+  const inputs = document.querySelectorAll(".input-group input");
+  const avoidInput = document.getElementById("avoidInput");
+  const resultsDiv = document.getElementById("results");
+  const dietSelect = document.getElementById("dietSelect");
+
+  const API_KEY = "fda62ed1787e4782a1ae603b0417fbb3"; // your real key
+
+  button.addEventListener("click", async () => {
+    resultsDiv.innerHTML = "<p>Loading recipes...</p>";
+
+    const ingredients = Array.from(inputs)
+      .map(input => input.value.trim())
+      .filter(val => val !== "")
+      .join(",");
+
+    const avoid = avoidInput.value.trim();
+    const diet = dietSelect.value;
+
+    if (!ingredients) {
+      resultsDiv.innerHTML = "<p>Please enter at least one ingredient.</p>";
+      return;
+    }
+
+    try {
+      let url = `https://api.spoonacular.com/recipes/complexSearch?includeIngredients=${ingredients}&excludeIngredients=${avoid}&number=5&addRecipeInformation=true&apiKey=${API_KEY}`;
+      
+      // Apply diet filter (skip if user chose "Non-Veg")
+      if (diet && diet !== "none") {
+        url += `&diet=${diet}`;
+      }
+
+      console.log("Fetching:", url);
+      let res = await fetch(url);
+      let data = await res.json();
+
+      // If no recipes found → fallback
+      if (!data.results || data.results.length === 0) {
+        console.log("No recipes found. Trying fallback...");
+        
+        // fallback: fetch with only the first ingredient
+        const firstIngredient = ingredients.split(",")[0];
+        let fallbackUrl = `https://api.spoonacular.com/recipes/complexSearch?includeIngredients=${firstIngredient}&number=5&addRecipeInformation=true&apiKey=${API_KEY}`;
+        
+        res = await fetch(fallbackUrl);
+        data = await res.json();
+      }
+
+      resultsDiv.innerHTML = "";
+
+      if (data.results && data.results.length > 0) {
+        data.results.forEach(recipe => {
+          const recipeDiv = document.createElement("div");
+          recipeDiv.className = "recipe";
+          recipeDiv.innerHTML = `
+            <h3>${recipe.title}</h3>
+            <img src="${recipe.image}" alt="${recipe.title}">
+            <p><b>Ready in:</b> ${recipe.readyInMinutes} mins</p>
+            <p><b>Servings:</b> ${recipe.servings}</p>
+            <p><a href="${recipe.sourceUrl}" target="_blank">View Full Recipe</a></p>
+          `;
+          resultsDiv.appendChild(recipeDiv);
+        });
+      } else {
+        // If even fallback fails → suggest manually
+        resultsDiv.innerHTML = `
+          <p>No recipes found. But you can try:</p>
+          <div class="recipe">
+            <h3>Simple Aloo Paratha</h3>
+            <p>Stuffed Indian bread made with potato filling.</p>
+          </div>
+          <div class="recipe">
+            <h3>Paneer Butter Masala</h3>
+            <p>Creamy curry with cottage cheese and tomato gravy.</p>
+          </div>
+          <div class="recipe">
+            <h3>Veg Fried Rice</h3>
+            <p>Quick rice stir-fried with mixed vegetables and soy sauce.</p>
+          </div>
+        `;
+      }
+
+    } catch (err) {
+      resultsDiv.innerHTML = "<p>Error fetching recipes. Check console.</p>";
+      console.error("Fetch error:", err);
+    }
+  });
+</script>
+
+</body>
+</html>
+
+
+<!-- fda62ed1787e4782a1ae603b0417fbb3 -->

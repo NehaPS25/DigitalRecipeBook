@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Food Menu Table</title>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fffaf0; margin:0; padding:0;}
+  header { background-color: #a44a3f; color:white; padding:20px; text-align:center;}
+  h1 { margin:0;}
+  .btn-add { background-color:#f4e3db; padding:13px; margin:15px auto; border-radius:12px; color:black; width:100px; border:none; display:block; cursor:pointer;}
+  table { width:90%; margin:20px auto; border-collapse:collapse; background:white; box-shadow:0 4px 12px rgba(0,0,0,0.1); border-radius:10px; overflow:hidden;}
+  th, td { padding:15px; text-align:left; border-bottom:1px solid #ddd; vertical-align:middle;}
+  th { background-color:#f2d3c2; color:#5a2a18; font-size:18px;}
+  td img { width:120px; height:80px; object-fit:cover; border-radius:10px;}
+  tr:hover { background-color:#f9f3f1;}
+  a { color:#a44a3f; text-decoration:none; font-weight:bold;}
+  a:hover { text-decoration:underline;}
+  footer { background-color:#f4e3db; text-align:center; padding:15px; margin-top:30px;}
+</style>
+</head>
+<body>
+
+<header><h1>Masala Tales - Food Menu</h1></header>
+<button class="btn-add"><a href="form1.html">ADD</a></button>
+
+<table>
+  <thead>
+    <tr>
+      <th>Image</th>
+      <th>Dish Name</th>
+      <th>Description</th>
+      <th>Link</th>
+    </tr>
+  </thead>
+  <tbody id="menuBody">
+    <!-- Recipes will be loaded here -->
+  </tbody>
+</table>
+
+<footer>&copy; 2025 Masala Tales. All rights reserved.</footer>
+
+<script>
+  const menuBody = document.getElementById("menuBody");
+
+  const recipes = JSON.parse(localStorage.getItem("formDataList")) || [];
+
+  recipes.forEach((recipe, index) => {
+    const tr = document.createElement("tr");
+
+    // Image
+    const tdImg = document.createElement("td");
+    const img = document.createElement("img");
+    img.src = recipe.image || "default.jpg";
+    img.alt = recipe.name;
+    tdImg.appendChild(img);
+    tr.appendChild(tdImg);
+
+    // Name
+    const tdName = document.createElement("td");
+    tdName.textContent = recipe.name;
+    tr.appendChild(tdName);
+
+    // Description
+    const tdDesc = document.createElement("td");
+    tdDesc.textContent = recipe.description;
+    tr.appendChild(tdDesc);
+
+    // Link
+    const tdLink = document.createElement("td");
+    const a = document.createElement("a");
+    a.href = `view.html?index=${index}`;
+    a.textContent = "View";
+    tdLink.appendChild(a);
+    tr.appendChild(tdLink);
+
+    menuBody.appendChild(tr);
+  });
+</script>
+
+</body>
+</html>

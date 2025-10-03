@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dish Details</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #ffecd2, #fcb69f);
+      margin: 0;
+      padding: 40px;
+      text-align: center;
+    }
+    .dish-card {
+      background: #fff;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0px 8px 20px rgba(0,0,0,0.2);
+      display: inline-block;
+      max-width: 600px;
+      text-align: left;
+    }
+    .dish-card img {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      margin: 10px 0;
+      font-size: 28px;
+      color: #333;
+      text-align: center;
+    }
+    .ingredients {
+      margin: 20px 0;
+    }
+    .ingredients h3 {
+      margin-bottom: 10px;
+      color: #444;
+    }
+    .ingredients ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 0;
+      list-style: none;
+    }
+    .ingredients li {
+      background: #f0f0f0;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 500;
+      color: #222;
+      min-width: 100px;
+      text-align: center;
+    }
+    .ingredients li:nth-child(odd) {
+      background: #ffeaa7;
+    }
+    .ingredients li:nth-child(even) {
+      background: #c9ad8c;
+      color: #fff;
+    }
+    .description, .notes {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f8f9fa;
+      border-left: 5px solid #6c5ce7;
+      border-radius: 10px;
+      font-size: 15px;
+      color: #444;
+    }
+    .notes h3 {
+      margin-top: 0;
+    }
+    .action-btn {
+      padding: 10px 20px;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px 0 0;
+      transition: 0.3s;
+    }
+    .delete-btn {
+      background-color: #e74c3c;
+    }
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+    .edit-btn {
+      background-color: #3498db;
+    }
+    .edit-btn:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+<body>
+ <div class="dish-card" id="dish"></div>
+
+<script>
+  const selectedDish = JSON.parse(localStorage.getItem("selectedDish"));
+
+  if(selectedDish){
+    const ingredientList = selectedDish.ingredients.split("\n").map(i => i.trim()).filter(Boolean);
+
+    document.getElementById("dish").innerHTML = `
+      <img src="${selectedDish.image}" alt="${selectedDish.name}">
+      <h2>${selectedDish.name}</h2>
+      <div class="ingredients">
+        <h3>🥗 Ingredients:</h3>
+        <ul>${ingredientList.map(i=>`<li>${i}</li>`).join("")}</ul>
+      </div>
+      <div class="description"><p><strong>Description:</strong> ${selectedDish.description||"No description provided."}</p></div>
+      <div class="notes"><h3>📝 Notes:</h3><p>${selectedDish.notes||"No notes added."}</p></div>
+      <button class="action-btn delete-btn" id="deleteBtn">Delete Recipe</button>
+      <button class="action-btn edit-btn" id="editBtn">Edit Recipe</button>
+    `;
+
+    document.getElementById("deleteBtn").addEventListener("click",()=>{
+      if(confirm(`Delete "${selectedDish.name}"?`)){
+        // Get saved recipes
+        let allRecipes = JSON.parse(localStorage.getItem("formDataList")) || [];
+        // Remove the selected dish
+        allRecipes = allRecipes.filter(d => d.name !== selectedDish.name);
+        // Save updated recipes
+        localStorage.setItem("formDataList", JSON.stringify(allRecipes));
+        // Remove selected dish
+        localStorage.removeItem("selectedDish");
+        alert("Recipe deleted!");
+        // Navigate back to index and refresh the page
+        window.location.href = "index1.html";
+      }
+    });
+
+    document.getElementById("editBtn").addEventListener("click",()=>{
+      localStorage.setItem("editDish", JSON.stringify(selectedDish));
+      window.location.href = "form1.html"; // go to form with pre-filled data
+    });
+
+  } else {
+    document.getElementById("dish").innerHTML = "<p>No dish selected.</p>";
+  }
+</script>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add/Edit Recipe</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #fff5e1;
+      padding: 40px;
+      text-align: center;
+    }
+    form {
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      display: inline-block;
+      text-align: left;
+      max-width: 500px;
+      width: 100%;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    button {
+      background: #6c5ce7;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #341f97;
+    }
+    label {
+      font-weight: bold;
+    }
+    img.preview {
+      max-width: 100%;
+      margin-bottom: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="formTitle">Add New Recipe</h1>
+  <form id="recipeForm">
+    <label>Dish Name:</label>
+    <input type="text" id="name" required>
+
+    <label>Ingredients (one per line):</label>
+    <textarea id="ingredients" placeholder="e.g.\nTomato\nOnion\nSalt" required></textarea>
+
+    <label>Description:</label>
+    <textarea id="description" placeholder="Write a description of the dish" required></textarea>
+
+    <label>Notes:</label>
+    <textarea id="notes" placeholder="Any notes or tips"></textarea>
+
+    <label>Image:</label>
+    <input type="file" id="image" accept="image/*">
+    <img id="imagePreview" class="preview" src="" alt="" style="display:none;">
+
+    <button type="submit">Save Recipe</button>
+  </form>
+
+  <script>
+    const nameInput = document.getElementById("name");
+    const ingredientsInput = document.getElementById("ingredients");
+    const descriptionInput = document.getElementById("description");
+    const notesInput = document.getElementById("notes");
+    const imageInput = document.getElementById("image");
+    const imagePreview = document.getElementById("imagePreview");
+    const formTitle = document.getElementById("formTitle");
+
+    // Check if we are editing
+    const editDish = JSON.parse(localStorage.getItem("editDish"));
+
+    if (editDish) {
+      formTitle.textContent = "Edit Recipe";
+      nameInput.value = editDish.name;
+      ingredientsInput.value = editDish.ingredients;
+      descriptionInput.value = editDish.description;
+      notesInput.value = editDish.notes;
+      imagePreview.src = editDish.image;
+      imagePreview.style.display = "block";
+    }
+
+    imageInput.addEventListener("change", function() {
+      const file = imageInput.files[0];
+      if(file){
+        const reader = new FileReader();
+        reader.onload = function(e){
+          imagePreview.src = e.target.result;
+          imagePreview.style.display = "block";
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+
+    document.getElementById("recipeForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const name = nameInput.value;
+      const ingredients = ingredientsInput.value;
+      const description = descriptionInput.value;
+      const notes = notesInput.value;
+
+      const saveRecipe = (imageData)=>{
+        const newRecipe = {
+          name,
+          ingredients,
+          description,
+          notes,
+          image: imageData || (editDish ? editDish.image : "")
+        };
+
+        let storedData = JSON.parse(localStorage.getItem("formDataList")) || [];
+
+        if(editDish){
+          // Update existing dish
+          storedData = storedData.map(d => d.name === editDish.name ? newRecipe : d);
+          localStorage.removeItem("editDish"); // clear edit mode
+        } else {
+          // Add new dish
+          storedData.push(newRecipe);
+        }
+
+        localStorage.setItem("formDataList", JSON.stringify(storedData));
+        localStorage.setItem("selectedDish", JSON.stringify(newRecipe)); // update selectedDish
+        alert(editDish ? "Recipe Updated!" : "Recipe Saved!");
+        window.location.href = "index1.html"; // go back to dish page
+      };
+
+      if(imageInput.files[0]){
+        const reader = new FileReader();
+        reader.onload = function(event){
+          saveRecipe(event.target.result);
+        }
+        reader.readAsDataURL(imageInput.files[0]);
+      } else {
+        saveRecipe(); // use existing image in edit
+      }
+    });
+  </script>
+</body>
+</html>
